@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.board.mapper.PostMapper">
+    <select id="findById" resultType="com.example.springboard.domain.post.controller.response.PostReturn">
+        SELECT p.id,
+               p.title,
+               p.content,
+               p.views,
+               ROUND(IFNULL(avg(c.score), 0), 1),
+               m.nickname,
+               p.register_date
+        FROM POST P
+        WHERE p.id = #{id} and p.status = 'USING'
+        JOIN MEMBER M ON M.id = p.member_id
+        LEFT OUTER JOIN COMMENT C ON C.post_id = p.id;
+    </select>
+    <select id="findPosts" resultType="com.example.springboard.domain.post.controller.response.PostBriefReturn">
+        select p.id, p.title, p.content, m.nickname, p.register_date
+        from post p
+                 join member m on m.id = p.member_id
+        where p.status = 'USING'
+        order by p.register_date
+            limit #{count} offset #{offset}
+    </select>
+    <select id="findByMemberIdAndPostId" resultType="int">
+        select count(*)
+        from post
+        where member_id = #{memberId} and id=#{postId} and status = 'USING'
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
+            parameterType="com.example.springboard.domain.post.dto.Post">
+        insert into post (title, content, member_id)
+        values (#{title}, #{content}, #{memberId})
+    </insert>
+    <update id="update">
+        UPDATE post
+        <set>
+            <if test="title != null">
+                title = #{title},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+        </set>
+        WHERE id = #{postId} and status = 'USING'
+    </update>
+    <update id="delete">
+        update post
+        SET status = 'DELETED'
+        where id = #{postId}
+    </update>
+</mapper>
