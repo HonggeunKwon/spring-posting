@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboard.mapper.MemberMapper">
+    <select id="findById" resultType="com.example.springboard.domain.member.dto.Member">
+        select *
+        from member
+        where id = #{id}
+    </select>
+    <select id="countByLoginIdAndNickname" resultType="int">
+        select COUNT(*)
+        from member
+        where login_id = #{loginId} or nickname = #{nickname}
+    </select>
+    <select id="findByLoginIdAndPassword" resultType="com.example.springboard.domain.member.dto.Member">
+        select *
+        from member
+        where login_id = #{loginId}
+          and password = #{password} and status = 'USING'
+
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
+            parameterType="com.example.springboard.domain.member.dto.Member">
+        insert into member (login_id, password, nickname, status, register_date)
+        values (#{loginId}, #{password}, #{nickname}, #{status}, #{registerDate})
+    </insert>
+    <update id="changeStatus">
+        update member
+        SET status = #{status}
+        where id = #{memberId}
+    </update>
+</mapper>
