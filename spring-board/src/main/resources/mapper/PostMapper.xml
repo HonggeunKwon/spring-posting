@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.example.board.mapper.PostMapper">
-    <select id="findById" resultType="com.example.springboard.domain.post.controller.response.PostReturn">
-        SELECT p.id,
-               p.title,
-               p.content,
-               p.views,
-               ROUND(IFNULL(avg(c.score), 0), 1),
-               m.nickname,
-               p.register_date
+<mapper namespace="com.example.springboard.mapper.PostMapper">
+    <resultMap type="com.example.springboard.domain.post.controller.response.PostReturn" id="postReturnDTO">
+        <result property="id" column="id"/>
+        <result property="title" column="TITLE"/>
+        <result property="content" column="CONTENT"/>
+        <result property="score" column="SCORE"/>
+        <result property="views" column="VIEWS"/>
+        <result property="nickname" column="NICKNAME"/>
+        <result property="registerDate" column="REGISTER_DATE"/>
+    </resultMap>
+
+
+    <select id="findById" resultMap="postReturnDTO">
+       SELECT P.ID, P.TITLE, P.CONTENT, ROUND(IFNULL(avg(C.SCORE), 0), 1) as SCORE, P.VIEWS, P.REGISTER_DATE
         FROM POST P
-        WHERE p.id = #{id} and p.status = 'USING'
-        JOIN MEMBER M ON M.id = p.member_id
-        LEFT OUTER JOIN COMMENT C ON C.post_id = p.id;
+                 LEFT JOIN MEMBER M ON M.ID = P.MEMBER_ID
+                 LEFT OUTER JOIN COMMENT C ON C.POST_ID = P.ID
+        WHERE P.ID = #{id}
+        GROUP BY P.ID;
     </select>
     <select id="findPosts" resultType="com.example.springboard.domain.post.controller.response.PostBriefReturn">
         select p.id, p.title, p.content, m.nickname, p.register_date
@@ -30,8 +36,8 @@
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id"
             parameterType="com.example.springboard.domain.post.dto.Post">
-        insert into post (title, content, member_id)
-        values (#{title}, #{content}, #{memberId})
+        insert into post (title, content, member_id, register_date, status)
+        values (#{title}, #{content}, #{memberId}, #{registerDate}, #{status})
     </insert>
     <update id="update">
         UPDATE post

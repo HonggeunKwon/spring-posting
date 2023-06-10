@@ -1,5 +1,6 @@
 package com.example.springboard.domain.member.controller;
 
+import com.example.springboard.aop.annotations.SessionCheck;
 import com.example.springboard.domain.member.service.MemberService;
 import com.example.springboard.utils.SessionUtility;
 import jakarta.servlet.http.HttpSession;
@@ -29,6 +30,7 @@ public class MemberController {
         sessionUtility.setSessionValue(session, memberId);
     }
 
+    @SessionCheck
     @DeleteMapping("/sign-out")
     public void signOut(@RequestBody String password, HttpSession session) {
         Long memberId = sessionUtility.getSessionValue(session);

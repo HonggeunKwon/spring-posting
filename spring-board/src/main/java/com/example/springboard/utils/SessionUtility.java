@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SessionUtility {
 
+    protected SessionUtility() { }
+
     private static String sessionKey = "MEMBER-SESSION-KEY";
 
     public Long getSessionValue(HttpSession session) {

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboard.mapper.CommentMapper">
+    <select id="getCommentsByPostId" resultType="com.example.springboard.domain.comment.controller.response.CommentReturn">
+        select c.id, c.content, m.nickname, c.score, c.register_date
+        from comment c
+                 join member m on m.id = c.member_id
+        where c.post_id = #{postId}
+          and c.status = 'USING'
+        order by register_date
+            limit #{count}
+        offset #{offset}
+    </select>
+    <select id="getCommentById" resultType="com.example.springboard.domain.comment.controller.response.CommentReturn">
+        select c.id, c.content, m.nickname, c.register_date, c.score
+        from comment c
+                 join member m on m.id = c.member_id
+        where c.id = #{commentId}
+          and c.status = 'USING'
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
+            parameterType="com.example.springboard.domain.comment.dto.Comment">
+        insert into comment (post_id, member_id, content, score, register_date, status)
+        values (#{postId}, #{memberId}, #{content}, #{score}, #{registerDate}, #{status})
+    </insert>
+    <update id="update">
+        update comment
+        SET content = #{content}, SCORE = #{score}
+        where id = #{commentId}
+    </update>
+    <select id="getCount" resultType="int">
+        select COUNT(*)
+        from comment
+        where member_id = #{memberId}
+          and id = #{commentId}
+          and status = 'USING'
+    </select>
+    <update id="delete">
+        update comment
+        SET status = 'DELETED'
+        where id = #{commentId}
+    </update>
+</mapper>
