@@ -14,4 +14,5 @@ public interface PostMapper {
     int insert(Post post);
     int update(@Param("postId") Long postId, @Param("title") String title, @Param("content") String content);
     int delete(Long postId);
+    void updatePost(PostReturn post);
 }

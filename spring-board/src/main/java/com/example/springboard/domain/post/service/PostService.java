@@ -50,6 +50,10 @@ public class PostService {
         postRepository.deletePost(postId);
     }
 
+    public void updatePost(PostReturn postReturn) {
+        postRepository.updatePost(postReturn);
+    }
+
     private void checkAuth(Long postId, Long memberId) {
         postRepository.checkAuth(memberId, postId);
     }

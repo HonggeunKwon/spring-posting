@@ -9,12 +9,11 @@
         <result property="score" column="SCORE"/>
         <result property="views" column="VIEWS"/>
         <result property="nickname" column="NICKNAME"/>
+        <result property="count" column="count"/>
         <result property="registerDate" column="REGISTER_DATE"/>
     </resultMap>
-
-
     <select id="findById" resultMap="postReturnDTO">
-       SELECT P.ID, P.TITLE, P.CONTENT, ROUND(IFNULL(avg(C.SCORE), 0), 1) as SCORE, P.VIEWS, P.REGISTER_DATE
+       SELECT P.ID, P.TITLE, P.CONTENT, count(C.SCORE) as count, ROUND(IFNULL(avg(C.SCORE), 0), 1) as SCORE, P.VIEWS, P.REGISTER_DATE, M.NICKNAME
         FROM POST P
                  LEFT JOIN MEMBER M ON M.ID = P.MEMBER_ID
                  LEFT OUTER JOIN COMMENT C ON C.POST_ID = P.ID
@@ -55,5 +54,10 @@
         update post
         SET status = 'DELETED'
         where id = #{postId}
+    </update>
+    <update id="updatePost" parameterType="com.example.springboard.domain.post.controller.response.PostReturn">
+        UPDATE POST
+        SET TITLE = #{title}, CONTENT = #{content}, VIEWS = #{views}
+        WHERE ID = #{id}
     </update>
 </mapper>

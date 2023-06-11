@@ -16,6 +16,7 @@ public class Post {
     private LocalDateTime registerDate;
     private Long memberId;
     private Status status;
+    private int views;
 
     protected Post() { }
 

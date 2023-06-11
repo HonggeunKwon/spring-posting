@@ -3,6 +3,7 @@ package com.example.springboard.domain.post.controller;
 import com.example.springboard.aop.annotations.SessionCheck;
 import com.example.springboard.domain.post.controller.response.PostBriefReturn;
 import com.example.springboard.domain.post.controller.response.PostReturn;
+import com.example.springboard.domain.post.repository.PostRedisDao;
 import com.example.springboard.domain.post.service.PostService;
 import com.example.springboard.utils.SessionUtility;
 import jakarta.servlet.http.HttpSession;
@@ -19,10 +20,13 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
     private final SessionUtility sessionUtility;
+    private final PostRedisDao postDao;
 
     @GetMapping("/{postId}")
     public Object getPost(@PathVariable Long postId) {
-        return postService.getPost(postId);
+        PostReturn value = postDao.getValue(postId);
+        postDao.increaseView(value);
+        return value;
     }
 
     @GetMapping("/all")

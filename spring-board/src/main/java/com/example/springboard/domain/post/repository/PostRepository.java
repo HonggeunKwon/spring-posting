@@ -34,6 +34,11 @@ public class PostRepository {
         return postMapper.update(postId, title, content) == 1;
     }
 
+    public void updatePost(PostReturn postReturn) {
+        postMapper.updatePost(postReturn);
+    }
+
+
     public boolean deletePost(Long postId) {
         return postMapper.delete(postId) == 1;
     }
