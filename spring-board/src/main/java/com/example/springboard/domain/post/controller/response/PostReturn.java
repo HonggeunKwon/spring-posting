@@ -24,12 +24,4 @@ public class PostReturn {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime registerDate;
 
-
-    public void increaseViews() {
-        this.views++;
-    }
-
-    public void appendComment(Float score) {
-        this.score =  (this.score * count + score) / count++;
-    }
 }

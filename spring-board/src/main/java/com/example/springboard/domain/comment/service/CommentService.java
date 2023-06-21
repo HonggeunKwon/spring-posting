@@ -4,7 +4,6 @@ import com.example.springboard.domain.comment.controller.response.CommentReturn;
 import com.example.springboard.domain.comment.dto.Comment;
 import com.example.springboard.domain.comment.repository.CommentRepository;
 import com.example.springboard.domain.post.controller.response.PostReturn;
-import com.example.springboard.domain.post.repository.PostRedisDao;
 import com.example.springboard.exception.NoResourceException;
 import com.example.springboard.exception.UnAuthorizationException;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
-    private final PostRedisDao postDao;
 
     public CommentReturn getComment(Long commentId) {
         CommentReturn commentReturn = commentRepository.getCommentById(commentId);
@@ -38,10 +36,6 @@ public class CommentService {
         if(commentRepository.insertComment(comment) == false) {
             throw new RuntimeException("삽입에 실패 했습니다.");
         }
-
-        PostReturn value = postDao.getValue(postId);
-        value.appendComment(score);
-        postDao.setValue(value);
     }
 
     public void editComment(Long memberId, Long commentId, String content, Float score) {

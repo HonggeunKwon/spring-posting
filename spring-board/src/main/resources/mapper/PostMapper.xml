@@ -55,9 +55,9 @@
         SET status = 'DELETED'
         where id = #{postId}
     </update>
-    <update id="updatePost" parameterType="com.example.springboard.domain.post.controller.response.PostReturn">
+    <update id="updateViews">
         UPDATE POST
-        SET TITLE = #{title}, CONTENT = #{content}, VIEWS = #{views}
-        WHERE ID = #{id}
+        SET VIEWS = #{views}
+        WHERE ID = #{postId}
     </update>
 </mapper>
