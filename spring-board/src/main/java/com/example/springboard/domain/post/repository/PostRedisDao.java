@@ -1,62 +1,81 @@
 package com.example.springboard.domain.post.repository;
 
-import com.example.springboard.domain.post.controller.response.PostReturn;
-import com.example.springboard.domain.post.service.PostService;
 import com.example.springboard.utils.PostKeyUtility;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
-import java.util.Set;
+import java.util.Arrays;
 
 @Slf4j
 @Repository
-@RequiredArgsConstructor
-public class PostRedisDao {
-
-    private final RedisTemplate<String, PostReturn> redisTemplate;
+public class PostRedisDao extends KeyExpirationEventMessageListener {
+    private final RedisTemplate<String, Object> redisTemplate;
     private final PostKeyUtility postKeyUtility;
-    private final PostService postService;
+    private final PostRepository postRepository;
 
-    public PostReturn getValue(Long postId) {
-        String key = getGenerateKey(postId);
+    public PostRedisDao(RedisMessageListenerContainer listenerContainer, RedisTemplate<String, Object> redisTemplate, PostKeyUtility postKeyUtility, PostRepository postRepository) {
+        super(listenerContainer);
+        this.redisTemplate = redisTemplate;
+        this.postKeyUtility = postKeyUtility;
+        this.postRepository = postRepository;
+    }
 
-        PostReturn value = redisTemplate.opsForValue().get(key);
-        if(value == null) {
-            value = postService.getPost(postId);
+
+    public int increaseView(Long postId) {
+        String key = generateKey(postId, KeyType.REAL);
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+
+        if(valueOperations.get(key) == null) {
+            valueOperations.set(generateKey(postId, KeyType.REAL), postRepository.getPostById(postId).getViews());
         }
+        valueOperations.set(generateKey(postId, KeyType.SHADOW) , "", Duration.ofSeconds(1));
 
-        setValue(value);
-
-        return value;
+        return valueOperations.increment(key).intValue();
     }
 
-    public void increaseView(PostReturn postReturn) {
-        postReturn.increaseViews();
-        setValue(postReturn);
+    public int getViews(Long postId) {
+        String key = generateKey(postId, KeyType.REAL);
+        return (int) redisTemplate.opsForValue().get(key);
     }
 
-    public void setValue(PostReturn postReturn) {
-        String key = getGenerateKey(postReturn.getId());
-        redisTemplate.opsForValue().set(key, postReturn, Duration.ofMinutes(20));
+    public int deleteAndGet(Long postId) {
+        String key = generateKey(postId, KeyType.REAL);
+        return (int) redisTemplate.opsForValue().getAndDelete(key);
     }
 
-    private String getGenerateKey(Long postId) {
-        return postKeyUtility.generateKey(postId);
+    private String generateKey(Long postId, KeyType keyType) {
+        return postKeyUtility.generateKey(postId) + ":" + keyType.getMessage();
     }
 
-    @Scheduled(initialDelay = 10000, fixedDelay = 10000)
-    public void editPost() {
-        log.info("[SCHEDULED] UPDATE REDIS - POST INFORMATION");
-        Set<String> keys = redisTemplate.keys("post:*");
-        for (String key : keys) {
-            PostReturn postReturn = redisTemplate.opsForValue().get(key);
-            postService.updatePost(postReturn);
+    @Override
+    public void onMessage(Message message, byte[] pattern) {
+        log.info("EXPIRED KEY [{}]", message.toString());
+        long postId = getPostIdFromKey(message);
+        postRepository.updateViews(postId, deleteAndGet(postId));
+    }
+
+    private static long getPostIdFromKey(Message message) {
+        String postIdStr = (String)Arrays.stream(message.toString().split(":")).toArray()[1];
+        long postId = Long.parseLong(postIdStr);
+        return postId;
+    }
+
+    @Getter
+    enum KeyType {
+        REAL("REAL"),
+        SHADOW("SHAD");
+
+        String message;
+
+        KeyType(String r) {
+            this.message = r;
         }
     }
 }

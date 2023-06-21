@@ -3,7 +3,6 @@ package com.example.springboard.domain.comment.controller;
 import com.example.springboard.aop.annotations.SessionCheck;
 import com.example.springboard.domain.comment.controller.response.CommentReturn;
 import com.example.springboard.domain.comment.service.CommentService;
-import com.example.springboard.domain.post.repository.PostRedisDao;
 import com.example.springboard.exception.InvalidRequestException;
 import com.example.springboard.utils.SessionUtility;
 import jakarta.servlet.http.HttpSession;

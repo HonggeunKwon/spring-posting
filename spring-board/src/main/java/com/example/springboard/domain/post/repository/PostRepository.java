@@ -34,9 +34,11 @@ public class PostRepository {
         return postMapper.update(postId, title, content) == 1;
     }
 
-    public void updatePost(PostReturn postReturn) {
-        postMapper.updatePost(postReturn);
+    public void updateViews(Long postId, int views) {
+        postMapper.updateViews(postId, views);
     }
+
+
 
 
     public boolean deletePost(Long postId) {

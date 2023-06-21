@@ -3,9 +3,11 @@ package com.example.springboard.domain.post.service;
 import com.example.springboard.domain.post.controller.response.PostBriefReturn;
 import com.example.springboard.domain.post.controller.response.PostReturn;
 import com.example.springboard.domain.post.dto.Post;
+import com.example.springboard.domain.post.repository.PostRedisDao;
 import com.example.springboard.domain.post.repository.PostRepository;
 import com.example.springboard.exception.InvalidRequestException;
 import com.example.springboard.exception.NoResourceException;
+import com.example.springboard.exception.UnAuthorizationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,12 +19,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final PostRedisDao postRedisDao;
 
     public PostReturn getPost(Long postId) {
         PostReturn postReturn = postRepository.getPostById(postId);
-        if(postReturn == null) {
+        postReturn.setViews(postRedisDao.increaseView(postId));
+
+        if (postReturn == null) {
             throw new NoResourceException("게시물이 삭제되었거나 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
+
         return postReturn;
     }
 
@@ -34,7 +40,7 @@ public class PostService {
     public void addPost(String title, String content, Long memberId) {
         Post post = Post.createPost(title, content, memberId);
         boolean result = postRepository.insertPost(post);
-        if(!result) {
+        if (!result) {
             throw new RuntimeException("[POST-SERVICE] 삽입 중 오류 발생");
         }
     }
@@ -47,19 +53,19 @@ public class PostService {
 
     public void deletePost(Long postId, Long memberId) {
         checkAuth(postId, memberId);
+        postRedisDao.deleteAndGet(postId);
         postRepository.deletePost(postId);
     }
 
-    public void updatePost(PostReturn postReturn) {
-        postRepository.updatePost(postReturn);
-    }
-
     private void checkAuth(Long postId, Long memberId) {
-        postRepository.checkAuth(memberId, postId);
+        boolean hasAuth = postRepository.checkAuth(memberId, postId);
+        if (!hasAuth) {
+            throw new UnAuthorizationException("권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
     }
 
     private void checkValid(String title, String content) {
-        if(!StringUtils.hasText(title) && !StringUtils.hasText(content)) {
+        if (!StringUtils.hasText(title) && !StringUtils.hasText(content)) {
             throw new InvalidRequestException("제목 혹은 내용은 비어있을 수 없습니다", HttpStatus.BAD_REQUEST);
         }
     }
