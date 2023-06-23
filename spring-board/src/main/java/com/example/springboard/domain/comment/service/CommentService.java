@@ -33,7 +33,8 @@ public class CommentService {
     public void addComment(Long postId, Long memberId, String content, Float score) {
         Comment comment = Comment.createComment(memberId, postId, content, score);
 
-        if(commentRepository.insertComment(comment) == false) {
+        boolean result = commentRepository.insertComment(comment);
+        if(!result) {
             throw new RuntimeException("삽입에 실패 했습니다.");
         }
     }

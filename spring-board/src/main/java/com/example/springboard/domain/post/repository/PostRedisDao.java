@@ -35,9 +35,13 @@ public class PostRedisDao extends KeyExpirationEventMessageListener {
         if(valueOperations.get(key) == null) {
             valueOperations.set(generateKey(postId, KeyType.REAL), postRepository.getPostById(postId).getViews());
         }
-        valueOperations.set(generateKey(postId, KeyType.SHADOW) , "", Duration.ofSeconds(1));
+        resetShadowKey(postId, valueOperations);
 
         return valueOperations.increment(key).intValue();
+    }
+
+    private void resetShadowKey(Long postId, ValueOperations<String, Object> valueOperations) {
+        valueOperations.set(generateKey(postId, KeyType.SHADOW) , "", Duration.ofMinutes(5));
     }
 
     public int getViews(Long postId) {
