@@ -53,7 +53,8 @@ public class PostService {
 
     public void deletePost(Long postId, Long memberId) {
         checkAuth(postId, memberId);
-        postRedisDao.deleteAndGet(postId);
+        int views = postRedisDao.deleteAndGet(postId);
+        postRepository.updateViews(postId, views);
         postRepository.deletePost(postId);
     }
 
